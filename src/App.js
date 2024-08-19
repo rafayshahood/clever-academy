@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setRole } from './auth/auth';
 import { addCourse, deleteCourse, editCourse } from './courses/courses';
+import { Button, Input, Select, Card, List, Typography, Space } from 'antd';
+
+const { TextArea } = Input;
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 function App() {
   const [newCourse, setNewCourse] = useState({ title: '', description: '' });
@@ -12,8 +17,8 @@ function App() {
   const courses = useSelector(state => state.courses.courses);
   const dispatch = useDispatch();
 
-  const handleRoleChange = (e) => {
-    dispatch(setRole(e.target.value));
+  const handleRoleChange = (value) => {
+    dispatch(setRole(value));
   };
 
   const handleAddCourse = () => {
@@ -42,65 +47,63 @@ function App() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-3xl font-bold underline mb-4 text-center">Course Management</h1>
+      <Title className="text-center" level={2}>Course Management</Title>
       <div className="mb-4">
-        <label>Choose Role: </label>
-        <select value={role} onChange={handleRoleChange} className="border p-2">
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
+        <Select
+          value={role}
+          onChange={handleRoleChange}
+          style={{ width: 200 }}
+          placeholder="Select Role"
+        >
+          <Option value="user">User</Option>
+          <Option value="admin">Admin</Option>
+        </Select>
       </div>
 
       {role === 'admin' && (
-        <div className="mb-4">
-          <input
-            type="text"
+        <Card title={editMode ? 'Edit Course' : 'Add New Course'} className="mb-4">
+          <Input
             value={newCourse.title}
             onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
             placeholder="Course Title"
-            className="w-full p-2 border mb-2"
+            className="mb-2"
           />
-          <textarea
+          <TextArea
             value={newCourse.description}
             onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
             placeholder="Course Description"
-            className="w-full p-2 border mb-2"
+            rows={4}
+            className="mb-2"
           />
-          <button
+          <Button
+            type="primary"
             onClick={editMode ? handleUpdateCourse : handleAddCourse}
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+            block
           >
             {editMode ? 'Update Course' : 'Add Course'}
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
-      <ul>
-        {courses.map(course => (
-          <li key={course.id} className="flex justify-between items-center p-4 mb-2 border rounded-lg bg-white shadow-md">
-            <div>
-              <h2 className="text-xl font-bold">{course.title}</h2>
-              <p>{course.description}</p>
-            </div>
-            {role === 'admin' && (
-              <div>
-                <button
-                  onClick={() => handleEditCourse(course)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded mr-2 hover:bg-yellow-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCourse(course.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <List
+        grid={{ gutter: 16, column: 1 }}
+        dataSource={courses}
+        renderItem={course => (
+          <List.Item>
+            <Card
+              title={course.title}
+              actions={
+                role === 'admin' ? [
+                  <Button type="link" onClick={() => handleEditCourse(course)}>Edit</Button>,
+                  <Button type="link" danger onClick={() => handleDeleteCourse(course.id)}>Delete</Button>
+                ] : []
+              }
+            >
+              <Text>{course.description}</Text>
+            </Card>
+          </List.Item>
+        )}
+      />
     </div>
   );
 }
